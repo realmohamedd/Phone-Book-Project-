@@ -1,291 +1,264 @@
 #include <iostream>
 #include <string>
-#include <limits>
+
 using namespace std;
 
-// Contact class
 class Contact {
-
 public:
-    string name, email, phoneNum, newname;
-
-    // Constructor
-    Contact(string n, string p, string e) {
-        name = n;
-        phoneNum = p;
-        email = e;
-    }
-
-    // Accessor methods
-    string getName() { return name; }
-    string getPhoneNum() { return phoneNum; }
-    string getEmail() { return email; }
+    string name;
+    string phone;
+    string email;
+    Contact* next;
 };
 
-// Node class for linked list
-class Node {
-public:
-    Contact* data;
-    Node* next;
-
-    // Constructor
-    Node(Contact* c) {
-        data = c;
-        next = NULL;
-    }
-
-    // Destructor
-    ~Node() {
-        delete data;
-        next = NULL;
-    }
-};
-
-// PhoneBook class
-class PhoneBook {
+class Phonebook : public Contact {
 private:
-    Node* head;
-    int size;
-
-
-    // Helper function to find node given contact name
-    Node* findNode(string name) {
-        Node* curr = head;
-        while (curr != NULL) {
-            if (curr->data->getName() == name)
-                return curr;
-            curr = curr->next; // next node
-        }
-        return NULL;
-    }
+    Contact* front;
+    Contact* back;
 
 public:
-    // Constructor
-    PhoneBook() {
-        head = NULL;
-        size = 0;
+    Phonebook() {
+        front = NULL;
+        back = NULL;
     }
-
-    // Destructor
-    ~PhoneBook() {
-        Node* curr = head;
-        while (curr != NULL) {
-            Node* temp = curr;
-            curr = curr->next;
-            delete temp;
+    /*
+     ~Phonebook() {
+        while (!isEmpty()) {
+            dequeue();
         }
     }
+    */
+    
 
-    // Check the List is Empty or not
-    bool isempty() {
-        if (head == NULL)
+    bool isEmpty() {
+        if (front == NULL && back == NULL)
             return true;
         else
             return false;
+       
     }
-    // Check How Many Contacts                              
-    int iscount() {
-        int counter = 0;
-        Node* temp = head;
-        while (temp != NULL)
+    int countContacts() {
+        int count = 0;
+        Contact* current = front;
+        while (current != nullptr) {
+            count++;
+            current = current->next;
+        }
+        return count;
+    }
+
+    void enqueue(string name, string phone,  string email) {
+        Contact* newContact = new Contact;
+        newContact->name = name;
+        newContact->phone = phone;
+        newContact->email = email;
+        newContact->next = nullptr;
+
+        if (isEmpty()) {
+            front = newContact;
+            back = newContact;
+        }
+        else {
+            back->next = newContact;
+            back = newContact;
+        }
+
+        cout << "Contact added successfully!" << endl;
+    }
+
+    void dequeue() {
+        if (isEmpty()) {
+            cout << "Phonebook is empty." << endl;
+            return;
+        }
+        
+        Contact* temp = front;
+        front = front->next;
+
+        cout << "Contact deleted: " << endl;
+        delete temp;
+    }
+
+    void deleteContact(string name) {
+        if (isEmpty()) {
+            cout << "Phonebook is empty." << endl;
+            return;
+        }
+
+        Contact* current = front;
+        Contact* prev = nullptr;
+
+        while (current != nullptr) 
         {
-            counter++;
+            if (current->name == name) 
+            {
+                if (current == front) 
+                {
+                    front = front->next;
+                }
+                else if (current == back) 
+                {
+                    back = prev;
+                    back->next = nullptr;
+                }
+                else 
+                {
+                    prev->next = current->next;
+                }
+
+                cout << "Contact deleted: " << endl;
+                delete current;
+                return;
+            }
+
+            prev = current;
+            current = current->next;
+        }
+
+        cout << "Contact not found." << endl;
+    }
+
+    void editContact(string name) {
+        Contact* temp = front;
+        while (temp != NULL) {
+            if (temp->name == name) {
+                string newName, newPhone, newEmail;
+                cout << "Enter new name: ";
+                cin.ignore();
+                getline(cin, newName);
+                cout << "Enter new phone number: ";
+                cin >> newPhone;
+                cout << "Enter new email address: ";
+                cin >> newEmail;
+                temp->name = newName;
+                temp->phone = newPhone;
+                temp->email = newEmail;
+                cout << "Contact edited successfully!" << endl;
+                
+            }
+            
             temp = temp->next;
         }
-        return counter;
+        cout << "Contact not found." << endl;
     }
-
-    // Add contact
-    void addContact(string name, string phoneNum, string email) {
-        Contact* c = new Contact(name, phoneNum, email); // new contact 
-        Node* n = new Node(c); // new node and pass (c = name, phone, emaill) 
-
-        if (head == NULL)
-            head = n;
-        else {
-            Node* curr = head;
-            while (curr->next != NULL)
-                curr = curr->next;
-            curr->next = n;
-        }
-        size++;
-        cout << " \n Contact added. \n" << endl;
-    }
-
-    // Search for contact and display information
     void searchContact(string name) {
-        Node* n = findNode(name);
-        if (n == NULL)
-            cout << "Contact not found!. \n" << endl;
-        else {
-            cout << "Name: " << n->data->getName() << endl;
-            cout << "Phone Number: " << n->data->getPhoneNum() << endl;
-            cout << "Email: " << n->data->getEmail() << endl;
-        }
-    }
-
-    // Edit contact information
-    void editContact(string name, string newname, string phoneNum, string email) { // phonenum and email not important 
-        Node* n = findNode(name);
-        if (isempty())
-            cout << "Contact not found. \n" << endl;
-        else {
-
-            n->data->name = name;
-            n->data->newname = newname;
-            n->data->phoneNum = phoneNum;
-            n->data->email = email;
-            cout << "Contact updated. \n" << endl;
-        }
-    }
-
-    // Remove contact from phone book
-    void removeContact(string name) {
-        Node* prev = NULL;
-        Node* curr = head;
-        while (curr != NULL && curr->data->getName() != name) {
-            prev = curr;
-            curr = curr->next;
-        }
-
-        if (curr == NULL)
-            cout << "Contact not found." << endl;
-        else {
-            if (prev == NULL)
-                head = curr->next;
-            else
-                prev->next = curr->next;
-            delete curr;
-            size--;
-            cout << "Contact removed." << endl;
-        }
-    }
-
-    // Display all contacts in phone book
-    void displayContacts() {
-        if (isempty())
-            cout << "No contacts in phone book." << endl;
-        else {
-            Node* temp = head;
-            while (temp != NULL) {
-                cout << "Name: " << temp->data->getName() << endl;
-                cout << "Phone Number: " << temp->data->getPhoneNum() << endl;
-                cout << "Email: " << temp->data->getEmail() << endl;
-                temp = temp->next; // Next Node 
+        Contact* temp = front;
+        while (temp != NULL) {
+            if (temp->name == name) {
+                cout << "Contact found:" << endl;
+                cout << "Name: " << temp->name << endl;
+                cout << "Phone: " << temp->phone << endl;
+                cout << "Email: " << temp->email << endl;
+                temp = temp->next;
+              
             }
+            else
+                cout << "Contact not found." << endl;
+        }
+            
+    }
+
+    void displayContacts() {
+        if (isEmpty()) {
+            cout << "Phonebook is empty." << endl;
+            return;
+        }
+
+        cout << "Phonebook contacts: " << endl;
+        Contact* temp = front;
+        while (temp != NULL) {
+            cout << "Name: " << temp->name << endl;
+            cout << "Phone Number: " << temp->phone << endl;
+            cout << "Email: " << temp->email << endl;
+            temp = temp->next;
+            cout << endl;
         }
     }
 };
 
-// Main function
 int main() {
-    PhoneBook pb;
-    int choice;
-    cout << "################################################## \n";
-    cout << "############ PHONE BOOK APPLICATION ############## \n";
-    cout << "################################################## \n \n";
-    do {
-        // Display menu options
-        cout << " ------------------------------------------------- \n" << endl;
-        cout << "1. Add contact" << endl;
-        cout << "2. Search Contact " << endl;
-        cout << "3. Edit Contact " << endl;
-        cout << "4. Remove Contact " << endl;
-        cout << "5. Display all Contacts " << endl;
-        cout << "6. Clear Screen " << endl;
-        cout << "7. check List Empty Or Not " << endl;
-        cout << "8. Exit " << endl;
+    Phonebook phonebook;
+    cout << "##################################################" << endl;
+    cout << "############# PHONE BOOK APPLICATION #############" << endl;
+    cout << "##################################################" << endl;
+    while (true) {
+        cout << endl;
+        cout << "--------------------------------------------------" << endl;
+        cout << "1. Add Contact" << endl;
+        cout << "2. Delete Contact" << endl;
+        cout << "3. Edit Contact" << endl;
+        cout << "4. Search Contact" << endl;
+        cout << "5. Display Contacts" << endl;
+        cout << "6. check List Empty Or Not " << endl;
+        cout << "7. Exit" << endl;
+        cout << "Enter your choice: ";
 
-        cout << "Enter Choice : ";
-        // Get user input for menu choice
+        int choice;
         cin >> choice;
-
-        //can you write enterid chice
-        cout << "You Enterd : " << choice << endl;
-
-        string name, email, phoneNum;
-        string newName, newEmail, newPhoneNum;
-
-        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        ;
-        ;
-        // Perform action based on user's choice
-        switch (choice)
-        {
-
+        cout << "You Entered : " << choice << endl;
+        switch (choice) {
         case 1:
-
-            cout << "Enter name: ";
-            cin.ignore(numeric_limits<int>::max(), '\n');
+        {
+            string name, phone, email;
+            cout << "Enter contact name: ";
+            cin.ignore();
             getline(cin, name);
-            cout << "Enter phone number: ";
-            cin >> phoneNum;
-            cout << "Enter email: ";
-            cin >> email;
-            pb.addContact(name, phoneNum, email);
-            //system("cls");
+            cout << "Enter contact phone: ";
+            getline(cin, phone);
+            cout << "Enter contact email: ";
+            getline(cin, email);
+            phonebook.enqueue(name, phone, email);
             break;
+        }
         case 2:
+        {
             system("cls");
-            cout << "Enter name to search: " << endl;
-            cin >> name;
-            pb.searchContact(name);
+            string name;
+            cout << "Enter the name of the contact to delete: ";
+            cin.ignore();
+            getline(cin, name);
+            phonebook.deleteContact(name);
             break;
+        }
         case 3:
-            cout << "Enter name to edit: " << endl;
-            cin >> name;
-            if (pb.isempty())
-                cout << "The Contact not Found..!" << endl;
-            else
-            {
-                system("cls");
-                cout << "Enter a New Name \n";
-                cin >> newName;
-                cout << "Enter new phone number: " << endl;
-                cin >> newPhoneNum;
-                cout << "Enter new email: " << endl;
-                cin >> newEmail;
-                pb.editContact(name, newName, newPhoneNum, newEmail);
-            }
-
-            break;
-        case 4:
+        {
             system("cls");
-            cout << "Enter name to remove: " << endl;
-            cin >> name;
-            pb.removeContact(name);
+            string name;
+            cout << "Enter the name of the contact to edit: ";
+            cin.ignore();
+            getline(cin, name);
+            phonebook.editContact(name);
             break;
+        }
+        case 4:
+        {
+            system("cls");
+            string name;
+            cout << "Enter the name of the contact to search: ";
+            cin.ignore();
+            getline(cin, name);
+            phonebook.searchContact(name);
+            break;
+        }
         case 5:
             system("cls");
-            if (pb.isempty())
-                cout << "The List is Empty..!" << endl;
-            else
-            {
-                cout << "The List Contains: " << pb.iscount() << endl << endl;
-                pb.displayContacts();
-            }
-
+            cout << "The List Contains: " << phonebook.countContacts() << endl << endl;
+            phonebook.displayContacts();
             break;
         case 6:
             system("cls");
-            break;
-        case 7:
-            system("cls");
-            if (pb.isempty())
+            if (phonebook.isEmpty())
                 cout << "The List is empty..! " << endl;
             else
                 cout << "The List Not Empty "
-                << "The List Contains : " << pb.iscount() << endl;
-            
+                << "List Contains : " << phonebook.countContacts() << endl;
             break;
-        case 8:
-            cout << "Exiting program..." << endl;
-            break;
+        case 7:
+            exit(0);
         default:
-            cout << "Invalid choice. Please try again." << endl;
-            break;
+            cout << "Invalid choice. Try again." << endl;
         }
+    }
 
-    } while (choice != 8);
     return 0;
 }
